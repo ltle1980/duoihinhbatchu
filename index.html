@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đuổi hình bắt chữ - Quyền trẻ em</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #eef7ff;
+      text-align: center;
+      padding: 30px;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 2;
+    }
+    img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      font-size: 18px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .feedback {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .congrats {
+      font-size: 22px;
+      color: green;
+      font-weight: bold;
+      margin-top: 20px;
+      animation: pop 1s ease-in-out infinite alternate;
+    }
+    @keyframes pop {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+
+  <div class="game-container">
+    <h2>🎯 Đuổi hình bắt chữ - Quyền trẻ em</h2>
+    <img id="image" src="" alt="Hình quyền trẻ em">
+    <div id="input-section">
+      <input type="text" id="answer" placeholder="Nhập đáp án tại đây...">
+      <br>
+      <button onclick="checkAnswer()">Kiểm tra</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div id="btns">
+      <button onclick="nextQuestion()" id="nextBtn">Câu tiếp theo</button>
+      <button onclick="finishGame()" id="finishBtn" style="display:none;">Kết thúc</button>
+    </div>
+    <div class="congrats" id="congrats" style="display:none;">
+      🎉 Chúc mừng bạn đã hoàn thành tất cả các câu! 🎆🎇
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { image: "images/song_con.jpg", answer: "sống còn" },
+      { image: "images/phat_trien.jpg", answer: "phát triển" },
+      { image: "images/bao_ve.jpg", answer: "bảo vệ" },
+      { image: "images/tham_gia.jpg", answer: "tham gia" }
+    ];
+
+    let current = 0;
+
+    function loadQuestion() {
+      document.getElementById('image').src = questions[current].image;
+      document.getElementById('answer').value = "";
+      document.getElementById('feedback').textContent = "";
+
+      // Hiển thị nút phù hợp
+      if (current === questions.length - 1) {
+        document.getElementById('nextBtn').style.display = "none";
+        document.getElementById('finishBtn').style.display = "inline-block";
+      } else {
+        document.getElementById('nextBtn').style.display = "inline-block";
+        document.getElementById('finishBtn').style.display = "none";
+      }
+    }
+
+    function checkAnswer() {
+      const userAnswer = document.getElementById('answer').value.trim().toLowerCase();
+      const correctAnswer = questions[current].answer.toLowerCase();
+      const feedback = document.getElementById('feedback');
+      if (userAnswer === correctAnswer) {
+        feedback.textContent = "✅ Chính xác!";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = `❌ Sai rồi!`;
+        feedback.style.color = "red";
+      }
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current < questions.length) {
+        loadQuestion();
+      }
+    }
+
+    function finishGame() {
+      document.querySelector(".game-container").style.zIndex = 2;
+      document.getElementById('image').style.display = "none";
+      document.getElementById('input-section').style.display = "none";
+      document.getElementById('btns').style.display = "none";
+      document.getElementById('feedback').textContent = "";
+      document.getElementById('congrats').style.display = "block";
+      startFireworks();
+    }
+
+    window.onload = loadQuestion;
+
+    // ---------- Hiệu ứng pháo hoa ----------
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    let fireworks = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function Firework(x, y) {
+      this.x = x;
+      this.y = y;
+      this.radius = Math.random() * 2 + 2;
+      this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      this.life = 100;
+      this.vx = (Math.random() - 0.5) * 8;
+      this.vy = (Math.random() - 0.5) * 8;
+    }
+
+    function startFireworks() {
+      for (let i = 0; i < 100; i++) {
+        fireworks.push(new Firework(canvas.width / 2, canvas.height / 2));
+      }
+      animateFireworks();
+    }
+
+    function animateFireworks() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      fireworks.forEach((f, i) => {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = f.color;
+        ctx.fill();
+        f.x += f.vx;
+        f.y += f.vy;
+        f.life--;
+        if (f.life <= 0) fireworks.splice(i, 1);
+      });
+      if (fireworks.length > 0) {
+        requestAnimationFrame(animateFireworks);
+      }
+    }
+  </script>
+</body>
+</html>
